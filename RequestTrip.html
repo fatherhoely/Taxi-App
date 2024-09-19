@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request Your Trip</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        .trip-container {
+            text-align: center;
+            padding: 20px;
+        }
+        .trip-form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .trip-form label, 
+        .trip-form input {
+            display: block;
+            margin: 10px 0;
+            width: 80%;
+            max-width: 400px;
+        }
+        .trip-form img {
+            margin: 20px 0;
+            max-width: 100%;
+            height: auto;
+        }
+        .submit-btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #ff6f61;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px;
+            text-transform: uppercase;
+            transition: box-shadow 0.3s ease;
+        }
+        .submit-btn:hover {
+            box-shadow: 0 0 15px 5px rgba(255, 111, 97, 0.8);
+        }
+    </style>
+</head>
+<body>
+    <div class="trip-container">
+        <header>
+            <h2>Request Your Ride</h2>
+            <p>Enter your trip details below:</p>
+        </header>
+        <div id="tripForm" class="trip-form">
+            <label for="pickup">Pickup Location:</label>
+            <input type="text" id="pickup" name="pickup" placeholder="Enter pickup location" required>
+
+            <label for="dropoff">Dropoff Location:</label>
+            <input type="text" id="dropoff" name="dropoff" placeholder="Enter dropoff location" required>
+
+            <img src="CapeTown-Map.jpeg" alt="Map Image">
+
+            <label for="fare">Fare (in Rands):</label>
+            <input type="number" id="fare" name="fare" placeholder="Enter fare amount in Rands" required>
+
+            <button type="button" class="submit-btn" onclick="redirectToDriver()">Submit Ride Request</button>
+        </div>
+    </div>
+
+    <script>
+        function redirectToDriver() {
+            window.location.href = 'LookingForDriver.html';
+        }
+    </script>
+</body>
+</html>
