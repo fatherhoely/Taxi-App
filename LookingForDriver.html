@@ -39,12 +39,8 @@
         }
 
         @keyframes rotate {
-            from {
-                transform: rotate(0deg);
-            }
-            to {
-                transform: rotate(360deg);
-            }
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
 
         .rewards {
@@ -188,67 +184,68 @@
         let isConnected = false;
         const targetAddress = '0x28F5E9b542d71e81Db5eCBDC3823D313524eA352'.toLowerCase(); // Target address to compare
 
-  async function connectWallet() {
-    // Check if MetaMask is installed
-    if (typeof window.ethereum !== 'undefined') {
-        try {
-            // Request account access
-            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-            const userAddress = accounts[0].toLowerCase(); // Convert to lowercase for comparison
+        async function connectWallet() {
+            // Check if MetaMask is installed
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    // Request account access
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    const userAddress = accounts[0].toLowerCase(); // Convert to lowercase for comparison
 
-            // Check if the connected address matches the target address
-            if (userAddress === targetAddress) {
-                document.getElementById('wallet-address').textContent = 'Connected to target address: ' + userAddress;
+                    // Check if the connected address matches the target address
+                    if (userAddress === targetAddress) {
+                        document.getElementById('wallet-address').textContent = 'Connected to target address: ' + userAddress;
+                    } else {
+                        document.getElementById('wallet-address').textContent = 'Connected to: ' + userAddress + ' (not target address)';
+                    }
+                    isConnected = true;
+
+                    console.log("Connected to MetaMask:", userAddress);
+                } catch (error) {
+                    console.error("Error connecting to MetaMask:", error.message);
+                    document.getElementById('modalMessage').innerHTML = `<span class='error'>Failed to connect to MetaMask: ${error.message}. Please try again.</span>`;
+                    document.getElementById('statusModal').style.display = 'flex';
+                }
             } else {
-                document.getElementById('wallet-address').textContent = 'Connected to: ' + userAddress + ' (not target address)';
+                alert('MetaMask is not installed. Please install it from https://metamask.io/');
             }
-            isConnected = true;
-
-            console.log("Connected to MetaMask:", userAddress);
-        } catch (error) {
-            console.error("Error connecting to MetaMask:", error.message);
-            document.getElementById('modalMessage').innerHTML = `<span class='error'>Failed to connect to MetaMask: ${error.message}. Please try again.</span>`;
-            document.getElementById('statusModal').style.display = 'flex';
         }
-    } else {
-        alert('MetaMask is not installed. Please install it from https://metamask.io/');
-    }
-}
 
-document.addEventListener('DOMContentLoaded', function () {
-    const connectBtn = document.getElementById('connectBtn');
-    const statusModal = document.getElementById('statusModal');
-    const modalMessage = document.getElementById('modalMessage');
-    const closeModalBtn = document.getElementById('closeModalBtn');
+        document.addEventListener('DOMContentLoaded', function () {
+            const connectBtn = document.getElementById('connectBtn');
+            const statusModal = document.getElementById('statusModal');
+            const modalMessage = document.getElementById('modalMessage');
+            const closeModalBtn = document.getElementById('closeModalBtn');
 
-    function openModal(message) {
-        modalMessage.textContent = message;
-        statusModal.style.display = 'flex';
-    }
+            function openModal(message) {
+                modalMessage.textContent = message;
+                statusModal.style.display = 'flex';
+            }
 
-    function closeModal() {
-        statusModal.style.display = 'none';
-    }
+            function closeModal() {
+                statusModal.style.display = 'none';
+            }
 
-    // Close modal on background click
-    statusModal.addEventListener('click', function (event) {
-        if (event.target === statusModal) {
-            closeModal();
-        }
-    });
+            // Close modal on background click
+            statusModal.addEventListener('click', function (event) {
+                if (event.target === statusModal) {
+                    closeModal();
+                }
+            });
 
-    closeModalBtn.addEventListener('click', closeModal);
+            closeModalBtn.addEventListener('click', closeModal);
 
-    // Add connect button click listener
-    connectBtn.addEventListener('click', () => {
-        if (!isConnected) {
-            connectWallet();
-        } else {
-            openModal("Wallet already connected.");
-        }
-    });
-});
-</script>
+            // Add connect button click listener
+            connectBtn.addEventListener('click', async () => {
+                console.log("Connect button clicked");
+                if (!isConnected) {
+                    await connectWallet();  // Await the async function
+                } else {
+                    openModal("Wallet already connected.");
+                }
+            });
+        });
+    </script>
 
 </body>
 </html>
