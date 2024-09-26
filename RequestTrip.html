@@ -49,6 +49,7 @@
             box-shadow: 0 0 15px 5px rgba(255, 111, 97, 0.8);
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.3.6/dist/web3.min.js"></script>
 </head>
 <body>
     <div class="trip-container">
@@ -68,14 +69,206 @@
             <label for="fare">Fare (in Rands):</label>
             <input type="number" id="fare" name="fare" placeholder="Enter fare amount in Rands" required>
 
-            <button type="button" class="submit-btn" onclick="redirectToDriver()">Submit Ride Request</button>
+            <button type="button" class="submit-btn" onclick="createRide()">Submit Ride Request</button>
         </div>
     </div>
 
     <script>
-        function redirectToDriver() {
-            window.location.href = 'LookingForDriver.html';
+        let web3;
+        let rideSharingContract;
+        const contractAddress = "0x28F5E9b542d71e81Db5eCBDC3823D313524eA352"; 
+        
+        const contractABI = [[
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_user",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_points",
+				"type": "uint256"
+			}
+		],
+		"name": "addLoyaltyPoints",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "checkPoints",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "checkRewards",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "loyaltyPoints",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_points",
+				"type": "uint256"
+			}
+		],
+		"name": "redeemPoints",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "rewards",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+]];
+
+        // Connect to MetaMask and initialize the contract
+        async function connectToCelo() {
+            if (window.ethereum) {
+                web3 = new Web3(window.ethereum);
+                await window.ethereum.enable();
+                rideSharingContract = new web3.eth.Contract(contractABI, contractAddress);
+                console.log("Connected to MetaMask and Celo!");
+            } else {
+                alert("Please install MetaMask to interact with Celo.");
+            }
         }
+
+        // Function to create a new ride
+        async function createRide() {
+            const accounts = await web3.eth.getAccounts();
+            const pickupLocation = document.getElementById("pickup").value;
+            const dropoffLocation = document.getElementById("dropoff").value;
+            const fare = document.getElementById("fare").value;
+            
+            if (!pickupLocation || !dropoffLocation || !fare) {
+                alert("Please fill all fields.");
+                return;
+            }
+
+            try {
+                await rideSharingContract.methods.createRide(pickupLocation, dropoffLocation, web3.utils.toWei(fare, "ether"))
+                    .send({ from: accounts[0] });
+                alert("Ride created successfully!");
+                window.location.href = 'LookingForDriver.html'; // Redirect after ride is created
+            } catch (error) {
+                console.error(error);
+                alert("Error creating ride. Check console for details.");
+            }
+        }
+
+        // Function to top up balance in the PaymentContract
+        async function topUp() {
+            const accounts = await web3.eth.getAccounts();
+            const amount = prompt("Enter the amount (in CELO) to top up:");
+
+            try {
+                await rideSharingContract.methods.topUp().send({ from: accounts[0], value: web3.utils.toWei(amount, "ether") });
+                alert("Balance topped up!");
+            } catch (error) {
+                console.error(error);
+                alert("Error topping up balance.");
+            }
+        }
+
+        // Function to pay the driver
+        async function payDriver() {
+            const accounts = await web3.eth.getAccounts();
+            const driverAddress = prompt("Enter the driver's address:");
+            const amount = prompt("Enter the amount to pay (in CELO):");
+
+            try {
+                await rideSharingContract.methods.payDriver(driverAddress, web3.utils.toWei(amount, "ether"))
+                    .send({ from: accounts[0] });
+                alert("Payment successful!");
+            } catch (error) {
+                console.error(error);
+                alert("Error processing payment.");
+            }
+        }
+
+        // Function to check user balance
+        async function checkBalance() {
+            const accounts = await web3.eth.getAccounts();
+
+            try {
+                const balance = await rideSharingContract.methods.getBalance().call({ from: accounts[0] });
+                alert("Your balance is: " + web3.utils.fromWei(balance, "ether") + " CELO");
+            } catch (error) {
+                console.error(error);
+                alert("Error checking balance.");
+            }
+        }
+
+        // Function to redeem loyalty points
+        async function redeemPoints() {
+            const accounts = await web3.eth.getAccounts();
+            const points = prompt("Enter the number of loyalty points to redeem:");
+
+            try {
+                await rideSharingContract.methods.redeemPoints(points).send({ from: accounts[0] });
+                alert("Points redeemed successfully!");
+            } catch (error) {
+                console.error(error);
+                alert("Error redeeming points.");
+            }
+        }
+
+        window.addEventListener('load', connectToCelo);
     </script>
 </body>
 </html>
