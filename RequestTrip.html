@@ -127,17 +127,23 @@
                 const rideSharingContract = new web3.eth.Contract(rideSharingABI, rideSharingAddress);
 
                 // Call the createRide function on the smart contract
-                await rideSharingContract.methods.createRide(pickup, dropoff, web3.utils.toWei(fare, 'ether')).send({
+                const txReceipt = await rideSharingContract.methods.createRide(pickup, dropoff, web3.utils.toWei(fare, 'ether')).send({
                     from: accounts[0]
                 });
 
-                // Show success message
-                document.getElementById('successMessage').style.display = 'block';
+                // Transaction hash
+                const txHash = txReceipt.transactionHash;
 
-                // Redirect to LookingForDriver page after 3 seconds
-                setTimeout(function() {
+                // Display success message with transaction link
+                const successMessage = document.getElementById('successMessage');
+                successMessage.innerHTML = `Your ride request has been submitted successfully! 
+                                            <br> <a href="https://explorer.celo.org/tx/${txHash}" target="_blank" style="color:lightgreen;">View Transaction</a>`;
+                successMessage.style.display = 'block';
+
+                // Redirect to LookingForDriver page after 5 seconds
+                setTimeout(function () {
                     window.location.href = 'LookingForDriver.html';
-                }, 3000);
+                }, 5000);
 
             } catch (error) {
                 console.error("Error submitting ride request:", error);
