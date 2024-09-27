@@ -49,6 +49,7 @@
             box-shadow: 0 0 15px 5px rgba(255, 111, 97, 0.8);
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.5.2/dist/web3.min.js"></script>
 </head>
 <body>
     <div class="trip-container">
@@ -68,13 +69,67 @@
             <label for="fare">Fare (in Rands):</label>
             <input type="number" id="fare" name="fare" placeholder="Enter fare amount in Rands" required>
 
-            <button type="button" class="submit-btn" aria-label="Submit Ride Request" onclick="redirectToDriver()">Submit Ride Request</button>
+            <button type="button" class="submit-btn" aria-label="Submit Ride Request" onclick="submitRideRequest()">Submit Ride Request</button>
         </div>
     </div>
 
     <script>
-        function redirectToDriver() {
-            window.location.href = 'LookingForDriver.html';
+        // Initialize Web3
+        let web3;
+        if (typeof window.ethereum !== 'undefined') {
+            web3 = new Web3(window.ethereum);
+        } else {
+            alert("Please install MetaMask to use this feature.");
+        }
+
+        // ABI for the RideSharingContract
+        const rideSharingABI = [
+            {
+                "inputs": [
+                    {"internalType": "string", "name": "_pickup", "type": "string"},
+                    {"internalType": "string", "name": "_dropoff", "type": "string"},
+                    {"internalType": "uint256", "name": "_fare", "type": "uint256"}
+                ],
+                "name": "createRide",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            }
+        ];
+
+        // Contract address (update with your contract's address)
+        const rideSharingAddress = '0x28F5E9b542d71e81Db5eCBDC3823D313524eA352';
+
+        // Function to handle submitting ride request
+        async function submitRideRequest() {
+            const pickup = document.getElementById('pickup').value;
+            const dropoff = document.getElementById('dropoff').value;
+            const fare = document.getElementById('fare').value;
+
+            if (!pickup || !dropoff || !fare) {
+                alert('Please fill in all fields.');
+                return;
+            }
+
+            try {
+                // Request MetaMask account access
+                await ethereum.request({ method: 'eth_requestAccounts' });
+                const accounts = await web3.eth.getAccounts();
+
+                const rideSharingContract = new web3.eth.Contract(rideSharingABI, rideSharingAddress);
+
+                // Call the createRide function on the smart contract
+                await rideSharingContract.methods.createRide(pickup, dropoff, web3.utils.toWei(fare, 'ether')).send({
+                    from: accounts[0]
+                });
+
+                // Redirect to LookingForDriver page after successful transaction
+                window.location.href = 'LookingForDriver.html';
+
+            } catch (error) {
+                console.error("Error submitting ride request:", error);
+                alert('Transaction failed. Please try again.');
+            }
         }
     </script>
 </body>
