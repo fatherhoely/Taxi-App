@@ -134,11 +134,18 @@
                 // Transaction hash
                 const txHash = txReceipt.transactionHash;
 
-                // Display success message with transaction link
-                const successMessage = document.getElementById('successMessage');
-                successMessage.innerHTML = `Your ride request has been submitted successfully! 
-                                            <br> <a href="https://explorer.celo.org/mainnet/tx/${txHash}" target="_blank" style="color:lightgreen;">View Transaction</a>`;
-                successMessage.style.display = 'block';
+                // Wait for the transaction to be confirmed (polling method)
+                const txConfirmed = await pollForTransactionConfirmation(txHash);
+
+                if (txConfirmed) {
+                    // Display success message with transaction link
+                    const successMessage = document.getElementById('successMessage');
+                    successMessage.innerHTML = `Your ride request has been submitted successfully! 
+                                                <br> <a href="https://explorer.celo.org/mainnet/tx/${txHash}" target="_blank" style="color:lightgreen;">View Transaction</a>`;
+                    successMessage.style.display = 'block';
+                } else {
+                    alert('Transaction could not be confirmed. Please check the explorer later.');
+                }
 
                 // Redirect to LookingForDriver page after 5 seconds
                 setTimeout(function () {
@@ -148,6 +155,23 @@
             } catch (error) {
                 console.error("Error submitting ride request:", error);
                 alert('Transaction failed. Please try again.');
+            }
+        }
+
+        // Function to poll for transaction confirmation
+        async function pollForTransactionConfirmation(txHash) {
+            try {
+                let receipt = null;
+                while (receipt === null) {
+                    receipt = await web3.eth.getTransactionReceipt(txHash);
+                    if (receipt) {
+                        return true; // Transaction confirmed
+                    }
+                    await new Promise(r => setTimeout(r, 5000)); // Poll every 5 seconds
+                }
+            } catch (error) {
+                console.error('Error while confirming transaction:', error);
+                return false; // Transaction not confirmed
             }
         }
     </script>
